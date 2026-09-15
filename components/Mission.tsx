@@ -1,6 +1,7 @@
 import { NameMeaning } from "@/components/NameMeaning";
 import { NotreEquipe } from "@/components/NotreEquipe";
 import { NotreMission } from "@/components/NotreMission";
+import { ProgrammesSection } from "@/components/ProgrammesSection";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { site } from "@/content/site";
 
@@ -10,7 +11,7 @@ const ABOUT_VIDEO = "/vids/nawal-2025-promo.mp4";
 export function Mission() {
   return (
     <>
-      <section className="border-b border-border">
+      <section id="qui-sommes-nous" className="scroll-mt-20 border-b border-border">
         <div className="mx-auto grid max-w-7xl items-center gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14 lg:px-8">
           <div className="max-w-xl">
             <p className="text-xs font-semibold tracking-[0.3em] text-accent uppercase">
@@ -19,7 +20,7 @@ export function Mission() {
             <h2 className="mt-4 font-[family-name:var(--font-bebas)] text-4xl tracking-[0.08em] text-foreground sm:text-5xl">
               {site.name}
             </h2>
-            <div className="mt-5 h-px w-14 bg-accent" aria-hidden />
+            <div className="mt-5 h-px w-14 bg-brand-orange" aria-hidden />
             <p className="mt-7 text-lg font-medium leading-snug text-foreground sm:text-xl">
               {site.mission.lead}
             </p>
@@ -37,6 +38,8 @@ export function Mission() {
       <NameMeaning />
 
       <NotreMission />
+
+      <ProgrammesSection />
 
       <NotreEquipe />
     </>

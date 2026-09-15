@@ -24,14 +24,7 @@ export default function ContactPage() {
         <dl className="mt-10 space-y-5 text-sm">
           <div>
             <dt className="text-xs tracking-[0.15em] text-muted uppercase">Email</dt>
-            <dd className="mt-1">
-              <a
-                href={`mailto:${site.contact.email}`}
-                className="text-foreground transition-colors hover:text-accent"
-              >
-                {site.contact.email}
-              </a>
-            </dd>
+            <dd className="mt-1 text-foreground">{site.contact.email}</dd>
           </div>
           <div>
             <dt className="text-xs tracking-[0.15em] text-muted uppercase">Phone</dt>
@@ -40,22 +33,6 @@ export default function ContactPage() {
           <div>
             <dt className="text-xs tracking-[0.15em] text-muted uppercase">Based in</dt>
             <dd className="mt-1 text-foreground">{site.contact.address}</dd>
-          </div>
-          <div>
-            <dt className="text-xs tracking-[0.15em] text-muted uppercase">Social</dt>
-            <dd className="mt-2 flex flex-wrap gap-4">
-              {site.contact.socials.map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-foreground transition-colors hover:text-accent"
-                >
-                  {s.label}
-                </a>
-              ))}
-            </dd>
           </div>
         </dl>
       </div>

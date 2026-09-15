@@ -6,9 +6,19 @@
   --muted: #9a9a94;
   --surface: #111111;
   --border: #2a2a2a;
-  --accent: #c8e6c9;
-  --accent-ink: #0d2a14;
-  --accent-dim: #8fbf96;
+
+  /* Brand palette */
+  --brand-teal: #0f3d45;
+  --brand-orange: #ff5c00;
+  --brand-lilac: #c9adff;
+  --brand-yellow: #eddb4d;
+  --brand-pink: #ff8aa3;
+  --brand-burgundy: #6b0a1f;
+
+  /* Primary accent = pink on teal ink (brand pairing) */
+  --accent: #ff8aa3;
+  --accent-ink: #0f3d45;
+  --accent-dim: #ffb0c0;
 }
 
 @theme inline {
@@ -20,6 +30,12 @@
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
   --color-accent-dim: var(--accent-dim);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-lilac: var(--brand-lilac);
+  --color-brand-yellow: var(--brand-yellow);
+  --color-brand-pink: var(--brand-pink);
+  --color-brand-burgundy: var(--brand-burgundy);
   --font-sans: var(--font-outfit);
   --font-display: var(--font-bebas);
 }
@@ -35,8 +51,8 @@ body {
 }
 
 ::selection {
-  background: var(--accent);
-  color: var(--accent-ink);
+  background: var(--brand-pink);
+  color: var(--brand-teal);
 }
 
 @keyframes fade-up {

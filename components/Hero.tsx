@@ -1,13 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { site } from "@/content/site";
 
 const HERO_VIDEO = "/vids/nawal-2025-promo.mp4";
 
 export function Hero() {
   return (
-    <section className="relative min-h-[min(92vh,920px)] w-full overflow-hidden bg-black">
+    <section
+      id="top"
+      className="relative min-h-[min(92vh,920px)] w-full overflow-hidden bg-black"
+    >
       <video
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
@@ -31,18 +33,18 @@ export function Hero() {
           {site.tagline}
         </p>
         <div className="animate-fade-up delay-2 mt-8 flex flex-wrap gap-3">
-          <Link
-            href="/films"
-            className="bg-accent px-5 py-3 text-sm font-semibold tracking-[0.12em] text-accent-ink uppercase transition-opacity hover:opacity-90"
+            <a
+            href="#programmes"
+            className="bg-brand-pink px-5 py-3 text-sm font-semibold tracking-[0.12em] text-brand-teal uppercase transition-opacity hover:opacity-90"
           >
-            Films
-          </Link>
-          <Link
-            href="/about"
-            className="border border-foreground/40 px-5 py-3 text-sm font-semibold tracking-[0.12em] text-foreground uppercase transition-colors hover:border-accent hover:text-accent"
+            Programmes
+          </a>
+          <a
+            href="#qui-sommes-nous"
+            className="border border-brand-orange/60 px-5 py-3 text-sm font-semibold tracking-[0.12em] text-foreground uppercase transition-colors hover:border-brand-orange hover:text-brand-orange"
           >
             À propos
-          </Link>
+          </a>
         </div>
       </div>
     </section>

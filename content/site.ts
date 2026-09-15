@@ -41,6 +41,34 @@ export const site = {
       body: "Promouvoir une transformation concrète, durable et systémique de l'industrie.",
     },
   ],
+  programmes: [
+    {
+      slug: "volume",
+      title: "Volume",
+      kind: "programme" as const,
+    },
+    {
+      slug: "cinephilia",
+      title: "Cinéphilia",
+      kind: "programme" as const,
+    },
+    {
+      slug: "the-story-lab",
+      title: "The Story Lab",
+      kind: "programme" as const,
+    },
+    {
+      slug: "partenariat-ficam",
+      title: "Partenariat avec la résidence d’écriture de la FICAM",
+      kind: "partenariat" as const,
+    },
+    {
+      slug: "partenariat-marrakech-amanar",
+      title:
+        "Partenariat avec le Marrakech Short Film Festival et le programme Amanar",
+      kind: "partenariat" as const,
+    },
+  ],
   about: {
     headline:
       "Laboratoire de soutien pour les artisans des écrans originaires d'Afrique du Nord et d'Asie de l'Ouest",
@@ -55,36 +83,28 @@ export const site = {
       name: "Bahija Essoussi Gagnon",
       role: "Présidente",
       bio: "Courte biographie à venir.",
-      image:
-        "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=800&q=80",
+      image: "/img/bahija.jpg",
     },
     {
       name: "Samuel Yoshimura Gagnon",
       role: "Directeur",
       bio: "Courte biographie à venir.",
-      image:
-        "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=800&q=80",
+      image: "/img/samuel.jpg",
     },
     {
       name: "Amina Oueslati",
       role: "Coordonatrice",
       bio: "Courte biographie à venir.",
-      image:
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=800&q=80",
+      image: null,
     },
   ],
   contact: {
     email: "hello@nawalpictures.com",
     phone: "+1 (323) 555-0142",
     address: "Los Angeles, CA",
-    socials: [
-      { label: "Instagram", href: "https://instagram.com" },
-      { label: "Vimeo", href: "https://vimeo.com" },
-      { label: "LinkedIn", href: "https://linkedin.com" },
-    ],
   },
   accentCta: {
-    label: "View Films",
-    href: "/films",
+    label: "Programmes",
+    href: "#programmes",
   },
 } as const;

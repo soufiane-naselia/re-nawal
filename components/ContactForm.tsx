@@ -1,22 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { site } from "@/content/site";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
 
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const data = new FormData(e.currentTarget);
-    const name = String(data.get("name") ?? "");
-    const email = String(data.get("email") ?? "");
-    const message = String(data.get("message") ?? "");
-    const subject = encodeURIComponent(`Inquiry from ${name}`);
-    const body = encodeURIComponent(
-      `${message}\n\n—\n${name}\n${email}`,
-    );
-    window.location.href = `mailto:${site.contact.email}?subject=${subject}&body=${body}`;
+    // Keep submission on-page — wire to backend later
     setSent(true);
   }
 
@@ -61,11 +52,7 @@ export function ContactForm() {
       </button>
       {sent ? (
         <p className="text-sm text-accent-dim">
-          Opening your email client… If nothing opens, write us at{" "}
-          <a className="underline" href={`mailto:${site.contact.email}`}>
-            {site.contact.email}
-          </a>
-          .
+          Merci — votre message a bien été reçu.
         </p>
       ) : null}
     </form>

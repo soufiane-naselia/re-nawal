@@ -1,5 +1,11 @@
 import { site } from "@/content/site";
 
+const pillarAccents = [
+  "text-brand-orange",
+  "text-brand-lilac",
+  "text-brand-yellow",
+] as const;
+
 export function NotreMission() {
   return (
     <section className="border-b border-border">
@@ -14,7 +20,9 @@ export function NotreMission() {
               key={pillar.title}
               className="border-b border-border py-8 md:border-b-0 md:border-r md:px-8 md:py-10 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
             >
-              <span className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">
+              <span
+                className={`text-xs font-semibold tracking-[0.25em] uppercase ${pillarAccents[index]}`}
+              >
                 {String(index + 1).padStart(2, "0")}
               </span>
               <h3 className="mt-4 font-[family-name:var(--font-bebas)] text-2xl tracking-wide text-foreground sm:text-3xl">

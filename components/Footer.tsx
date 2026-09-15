@@ -1,6 +1,12 @@
-import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { site } from "@/content/site";
+
+const nav = [
+  { href: "#qui-sommes-nous", label: "À propos" },
+  { href: "#programmes", label: "Programmes" },
+  { href: "#equipe", label: "Équipe" },
+  { href: "#infolettre", label: "Infolettre" },
+];
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -17,52 +23,27 @@ export function Footer() {
 
         <div>
           <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
-            Explore
+            Explorer
           </p>
           <ul className="space-y-2 text-sm text-muted">
-            <li>
-              <Link href="/films" className="transition-colors hover:text-accent">
-                Films
-              </Link>
-            </li>
-            <li>
-              <Link href="/about" className="transition-colors hover:text-accent">
-                About
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="transition-colors hover:text-accent">
-                Contact
-              </Link>
-            </li>
+            {nav.map((item) => (
+              <li key={item.href}>
+                <a href={item.href} className="transition-colors hover:text-accent">
+                  {item.label}
+                </a>
+              </li>
+            ))}
           </ul>
         </div>
 
         <div>
           <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-foreground uppercase">
-            Connect
+            Contact
           </p>
           <ul className="space-y-2 text-sm text-muted">
-            <li>
-              <a
-                href={`mailto:${site.contact.email}`}
-                className="transition-colors hover:text-accent"
-              >
-                {site.contact.email}
-              </a>
-            </li>
-            {site.contact.socials.map((s) => (
-              <li key={s.label}>
-                <a
-                  href={s.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="transition-colors hover:text-accent"
-                >
-                  {s.label}
-                </a>
-              </li>
-            ))}
+            <li>{site.contact.email}</li>
+            <li>{site.contact.phone}</li>
+            <li>{site.contact.address}</li>
           </ul>
         </div>
       </div>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { NotreEquipe } from "@/components/NotreEquipe";
 import { site } from "@/content/site";
 
@@ -32,15 +31,6 @@ export default function AboutPage() {
       </div>
 
       <NotreEquipe />
-
-      <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
-        <Link
-          href="/contact"
-          className="bg-accent px-6 py-3 text-sm font-semibold tracking-[0.12em] text-accent-ink uppercase transition-opacity hover:opacity-90"
-        >
-          Nous joindre
-        </Link>
-      </div>
     </>
   );
 }
