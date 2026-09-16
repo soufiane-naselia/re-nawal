@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ContactForm } from "@/components/ContactForm";
+import { SocialLinks } from "@/components/SocialLinks";
 import { site } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -21,20 +22,24 @@ export default function ContactPage() {
           Development, co-production, press, or festival inquiries. We read every message.
         </p>
 
-        <dl className="mt-10 space-y-5 text-sm">
+        <div className="mt-10 space-y-8">
           <div>
-            <dt className="text-xs tracking-[0.15em] text-muted uppercase">Email</dt>
-            <dd className="mt-1 text-foreground">{site.contact.email}</dd>
+            <p className="text-sm font-semibold text-foreground">Courriel</p>
+            <a
+              href={`mailto:${site.contact.email}`}
+              className="mt-2 inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors duration-300 hover:text-accent"
+            >
+              {site.contact.email}
+            </a>
           </div>
+
           <div>
-            <dt className="text-xs tracking-[0.15em] text-muted uppercase">Phone</dt>
-            <dd className="mt-1 text-foreground">{site.contact.phone}</dd>
+            <p className="text-sm font-semibold text-foreground">
+              Réseaux sociaux
+            </p>
+            <SocialLinks className="mt-2" />
           </div>
-          <div>
-            <dt className="text-xs tracking-[0.15em] text-muted uppercase">Based in</dt>
-            <dd className="mt-1 text-foreground">{site.contact.address}</dd>
-          </div>
-        </dl>
+        </div>
       </div>
 
       <div className="border border-border bg-surface/50 p-6 sm:p-8">

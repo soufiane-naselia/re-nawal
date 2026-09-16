@@ -41,7 +41,10 @@ export default async function ProgrammeDetailPage({ params }: Props) {
 
   /* Sommaire : les sections livrées, plus les éditions si le programme en a. */
   const summaryNav = [
-    ...sections.map((section) => ({ id: section.id, label: section.heading })),
+    ...sections.map((section) => ({
+      id: section.id,
+      label: section.navLabel ?? section.heading,
+    })),
     ...(editions.length ? [{ id: "editions", label: "Les éditions" }] : []),
   ];
 

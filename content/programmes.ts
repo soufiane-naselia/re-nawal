@@ -74,12 +74,23 @@ export type ProgrammeBlock =
   /** Libellés courts en pastilles — partenaires en attendant les logos. */
   | { type: "tags"; lead?: string; items: readonly string[] }
   /** Lien externe, p. ex. la captation Vimeo d'une édition. */
-  | { type: "link"; href: string; label: string };
+  | { type: "link"; href: string; label: string }
+  /** Générique : modération puis intervenant·e·s d'une conférence. */
+  | { type: "people"; groups: readonly PersonGroup[] };
+
+/** Un groupe nommé de personnes (« Modératrice », « Intervenants »…). */
+export type PersonGroup = {
+  label: string;
+  people: readonly { name: string; role?: string }[];
+};
 
 export type ProgrammeSection = {
   /** Sert d'ancre et d'entrée dans le sommaire latéral. */
   id: string;
   heading: string;
+  /** Libellé court pour le sommaire quand `heading` est trop long (titres de
+   *  conférence). Par défaut, le sommaire reprend `heading`. */
+  navLabel?: string;
   blocks: readonly ProgrammeBlock[];
 };
 

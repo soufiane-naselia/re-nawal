@@ -229,6 +229,27 @@ function Block({
         </div>
       );
 
+    case "people":
+      return (
+        <div className="grid gap-6 sm:grid-cols-2">
+          {block.groups.map((group) => (
+            <div key={group.label}>
+              <p className="text-sm font-medium text-foreground">
+                {group.label}
+              </p>
+              <ul className="mt-3 space-y-2">
+                {group.people.map((person) => (
+                  <li key={person.name} className="text-[0.95rem] text-muted">
+                    <span className={tint.text}>{person.name}</span>
+                    {person.role ? ` — ${person.role}` : null}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      );
+
     case "link":
       return (
         <a

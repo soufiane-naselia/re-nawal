@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { isAnchorLink, site } from "@/content/site";
+import { SocialLinks } from "@/components/SocialLinks";
+import { footerNav, isAnchorLink, site } from "@/content/site";
 
-const nav = site.nav;
+const nav = footerNav;
 
 export function Footer() {
   const year = new Date().getFullYear();
@@ -64,28 +65,18 @@ export function Footer() {
         </div>
 
         <div>
-          <p className="mb-4 text-sm font-semibold text-foreground">
-            Contact
+          <p className="mb-4 text-sm font-semibold text-foreground">Courriel</p>
+          <a
+            href={`mailto:${site.contact.email}`}
+            className="inline-flex min-h-11 cursor-pointer items-center text-sm text-muted transition-colors duration-300 hover:text-accent"
+          >
+            {site.contact.email}
+          </a>
+
+          <p className="mt-6 mb-4 text-sm font-semibold text-foreground">
+            Réseaux sociaux
           </p>
-          <ul className="space-y-1 text-sm text-muted">
-            <li>
-              <a
-                href={`mailto:${site.contact.email}`}
-                className="inline-flex min-h-11 cursor-pointer items-center transition-colors duration-300 hover:text-accent"
-              >
-                {site.contact.email}
-              </a>
-            </li>
-            <li>
-              <a
-                href={`tel:${site.contact.phone.replace(/[^\d+]/g, "")}`}
-                className="inline-flex min-h-11 cursor-pointer items-center transition-colors duration-300 hover:text-accent"
-              >
-                {site.contact.phone}
-              </a>
-            </li>
-            <li className="flex min-h-11 items-center">{site.contact.address}</li>
-          </ul>
+          <SocialLinks />
         </div>
       </div>
 

@@ -100,7 +100,7 @@ export default async function EditionPage({ params }: Props) {
                   href={`#${section.id}`}
                   className="text-sm leading-snug text-muted transition-colors hover:text-foreground"
                 >
-                  {section.heading}
+                  {section.navLabel ?? section.heading}
                 </a>
               </li>
             ))}

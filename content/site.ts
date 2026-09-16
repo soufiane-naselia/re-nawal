@@ -126,13 +126,24 @@ export const site = {
     },
   ],
   contact: {
-    email: "hello@nawalpictures.com",
-    phone: "+1 (323) 555-0142",
-    address: "Los Angeles, CA",
+    email: "info@nawal.ca",
+    /* `phone` et `address` supprimés : le numéro en +1 (323) et
+       « Los Angeles, CA » venaient du gabarit de départ et ne sont plus
+       affichés nulle part. */
+    /**
+     * TODO — comptes à fournir par le client. Tant que `url` vaut `null`, le
+     * nom s'affiche sans lien : on n'invente pas d'adresse de profil.
+     */
+    social: [
+      { label: "Instagram", url: null },
+      { label: "Facebook", url: null },
+    ] as readonly { label: string; url: string | null }[],
   },
+  /** Bouton d'accent de l'en-tête. Volontairement absent de `nav` : il y
+   *  figurerait deux fois, dans la liste et en bouton. */
   accentCta: {
-    label: "Programmes",
-    href: "/programmes",
+    label: "Devenir membre",
+    href: "/devenir-membre",
   },
   /**
    * Partagé par Header et Footer. Deux natures de liens cohabitent :
@@ -145,10 +156,25 @@ export const site = {
   nav: [
     { href: "/#qui-sommes-nous", label: "À propos" },
     { href: "/programmes", label: "Programmes" },
+    { href: "/conferences", label: "Conférences" },
     { href: "/#equipe", label: "Équipe" },
-    { href: "/#infolettre", label: "Infolettre" },
+    { href: "/contact", label: "Contact" },
   ],
 } as const;
+
+/**
+ * Colonne « Explorer » du pied de page.
+ *
+ * Volontairement plus courte que `site.nav` : seulement les pages de contenu.
+ * Équipe et Infolettre restent dans l'en-tête, et « Devenir membre » garde son
+ * bouton d'accent. Liste écrite en toute lettre plutôt que filtrée depuis
+ * `nav`, pour qu'un changement d'URL ne la vide pas en silence.
+ */
+export const footerNav = [
+  { href: "/#qui-sommes-nous", label: "À propos" },
+  { href: "/programmes", label: "Programmes" },
+  { href: "/conferences", label: "Conférences" },
+] as const;
 
 /** Ancre de la page d'accueil (défilement Lenis) plutôt que route Next. */
 export function isAnchorLink(href: string): boolean {
