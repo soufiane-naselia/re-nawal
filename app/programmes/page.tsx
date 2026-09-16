@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { site } from "@/content/site";
+import Link from "next/link";
+import {
+  accentClasses,
+  editionStatusLabel,
+  type Programme,
+  programmesByKind,
+} from "@/content/programmes";
 
 export const metadata: Metadata = {
   title: "Programmes",
@@ -7,65 +13,106 @@ export const metadata: Metadata = {
 };
 
 export default function ProgrammesPage() {
-  const signature = site.programmes.filter((p) => p.kind === "programme");
-  const partnerships = site.programmes.filter((p) => p.kind === "partenariat");
+  const signature = programmesByKind("programme");
+  const partnerships = programmesByKind("partenariat");
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-20 lg:px-8">
       <header className="max-w-2xl">
-        <p className="text-xs font-semibold tracking-[0.25em] text-accent uppercase">
-          Programmes
+        <p className="text-xs font-semibold tracking-[0.3em] text-brand-orange uppercase">
+          Ce que nous offrons
         </p>
         <h1 className="mt-3 font-[family-name:var(--font-bebas)] text-5xl tracking-wide sm:text-6xl">
           Nos programmes
         </h1>
-        <p className="mt-4 text-muted">
+        <p className="mt-5 text-[0.95rem] leading-[1.8] text-muted sm:text-base">
           Accompagnement, création et partenariats pour les artisan.es des écrans
           des communautés NAWA.
         </p>
       </header>
 
-      <section className="mt-14">
+      <section className="mt-14 sm:mt-16">
         <h2 className="text-xs font-semibold tracking-[0.25em] text-muted uppercase">
           Programmes
         </h2>
-        <ul className="mt-6 divide-y divide-border border-y border-border">
+        {/* Pas de `reveal-stagger` ici : la page est courte et, sur un écran
+            haut, elle ne défile pas — la view timeline resterait inactive et
+            les tuiles bloquées à opacity 0. */}
+        <ul className="mt-6 grid gap-3 md:grid-cols-3">
           {signature.map((programme, index) => (
-            <li key={programme.slug} id={programme.slug} className="py-8">
-              <p className="text-xs tracking-[0.25em] text-accent uppercase">
-                {String(index + 1).padStart(2, "0")}
-              </p>
-              <h3 className="mt-2 font-[family-name:var(--font-bebas)] text-3xl tracking-wide sm:text-4xl">
-                {programme.title}
-              </h3>
-              <p className="mt-3 max-w-2xl text-sm text-muted">
-                Description à venir.
-              </p>
+            <li key={programme.slug}>
+              <ProgrammeTile programme={programme} index={index} />
             </li>
           ))}
         </ul>
       </section>
 
-      <section className="mt-16">
+      <section className="mt-12 sm:mt-14">
         <h2 className="text-xs font-semibold tracking-[0.25em] text-muted uppercase">
           Partenariats
         </h2>
-        <ul className="mt-6 divide-y divide-border border-y border-border">
+        <ul className="mt-6 grid gap-3 lg:grid-cols-2">
           {partnerships.map((programme, index) => (
-            <li key={programme.slug} id={programme.slug} className="py-8">
-              <p className="text-xs tracking-[0.25em] text-accent uppercase">
-                {String(signature.length + index + 1).padStart(2, "0")}
-              </p>
-              <h3 className="mt-2 max-w-3xl text-xl font-medium leading-snug sm:text-2xl">
-                {programme.title}
-              </h3>
-              <p className="mt-3 max-w-2xl text-sm text-muted">
-                Description à venir.
-              </p>
+            <li key={programme.slug}>
+              <ProgrammeTile
+                programme={programme}
+                index={signature.length + index}
+              />
             </li>
           ))}
         </ul>
       </section>
     </div>
+  );
+}
+
+function ProgrammeTile({
+  programme,
+  index,
+}: {
+  programme: Programme;
+  index: number;
+}) {
+  const tint = accentClasses[programme.accent];
+  /* Mise en avant de l'appel à candidatures en cours, s'il y en a un. */
+  const current = programme.editions?.find(
+    (edition) => edition.status !== "terminee",
+  );
+
+  return (
+    <Link
+      href={`/programmes/${programme.slug}`}
+      className={`group flex h-full flex-col border border-border border-t-2 bg-surface px-5 py-6 transition-colors duration-300 ease-[var(--ease-expo)] hover:bg-surface-raised ${tint.borderTop}`}
+    >
+      <span className="text-xs tracking-[0.25em] text-muted uppercase">
+        {String(index + 1).padStart(2, "0")}
+      </span>
+
+      <h3 className="mt-6 font-[family-name:var(--font-bebas)] text-3xl tracking-wide text-foreground">
+        {programme.name}
+      </h3>
+
+      {programme.title && programme.title !== programme.name ? (
+        <p className="mt-2 text-sm leading-snug text-foreground">
+          {programme.title}
+        </p>
+      ) : null}
+
+      <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-muted">
+        {programme.summary ?? "Détails à venir."}
+      </p>
+
+      {current ? (
+        <p className={`mt-4 text-xs tracking-[0.2em] uppercase ${tint.text}`}>
+          {current.label} — {editionStatusLabel[current.status]}
+        </p>
+      ) : null}
+
+      <span
+        className={`mt-auto pt-6 text-sm tracking-[0.15em] uppercase transition-transform duration-300 ease-[var(--ease-expo)] group-hover:translate-x-1 ${tint.text}`}
+      >
+        En savoir plus →
+      </span>
+    </Link>
   );
 }

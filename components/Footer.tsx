@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { Logo } from "@/components/Logo";
-import { site } from "@/content/site";
+import { isAnchorLink, site } from "@/content/site";
 
 const nav = site.nav;
 
@@ -33,20 +34,32 @@ export function Footer() {
           {/* Tight list gaps + min-h-11 per link: 44px tap targets without the
               column stretching into a ladder. */}
           <ul className="space-y-1 text-sm text-muted">
-            {nav.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  className="group inline-flex min-h-11 cursor-pointer items-center gap-2 transition-colors duration-300 hover:text-foreground"
-                >
-                  <span
-                    aria-hidden
-                    className="h-px w-0 bg-brand-pink transition-all duration-300 ease-[var(--ease-expo)] group-hover:w-4"
-                  />
-                  {item.label}
-                </a>
-              </li>
-            ))}
+            {nav.map((item) => {
+              const className =
+                "group inline-flex min-h-11 cursor-pointer items-center gap-2 transition-colors duration-300 hover:text-foreground";
+              const rule = (
+                <span
+                  aria-hidden
+                  className="h-px w-0 bg-brand-pink transition-all duration-300 ease-[var(--ease-expo)] group-hover:w-4"
+                />
+              );
+
+              return (
+                <li key={item.href}>
+                  {isAnchorLink(item.href) ? (
+                    <a href={item.href} className={className}>
+                      {rule}
+                      {item.label}
+                    </a>
+                  ) : (
+                    <Link href={item.href} className={className}>
+                      {rule}
+                      {item.label}
+                    </Link>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
 

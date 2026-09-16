@@ -1,7 +1,6 @@
 import { NameMeaning } from "@/components/NameMeaning";
 import { NotreEquipe } from "@/components/NotreEquipe";
 import { NotreMission } from "@/components/NotreMission";
-import { ProgrammesSection } from "@/components/ProgrammesSection";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { site } from "@/content/site";
 
@@ -39,8 +38,8 @@ export function Mission() {
 
       <NotreMission />
 
-      <ProgrammesSection />
-
+      {/* Les programmes vivent désormais sur /programmes, pas en section
+          d'accueil : la navigation y renvoie directement. */}
       <NotreEquipe />
     </>
   );

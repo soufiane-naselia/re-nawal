@@ -95,34 +95,8 @@ export const site = {
       body: "Promouvoir une transformation concrète, durable et systémique de l'industrie.",
     },
   ],
-  programmes: [
-    {
-      slug: "volume",
-      title: "Volume",
-      kind: "programme" as const,
-    },
-    {
-      slug: "cinephilia",
-      title: "Cinéphilia",
-      kind: "programme" as const,
-    },
-    {
-      slug: "the-story-lab",
-      title: "The Story Lab",
-      kind: "programme" as const,
-    },
-    {
-      slug: "partenariat-ficam",
-      title: "Partenariat avec la résidence d’écriture de la FICAM",
-      kind: "partenariat" as const,
-    },
-    {
-      slug: "partenariat-marrakech-amanar",
-      title:
-        "Partenariat avec le Marrakech Short Film Festival et le programme Amanar",
-      kind: "partenariat" as const,
-    },
-  ],
+  /* Les programmes ont leur propre modèle : content/programmes.ts. Le contenu
+     long (VOLUME et ses éditions) alimente aussi /programmes/[slug]. */
   about: {
     headline: TAGLINE,
     body: [
@@ -158,13 +132,25 @@ export const site = {
   },
   accentCta: {
     label: "Programmes",
-    href: "/#programmes",
+    href: "/programmes",
   },
-  /** Shared by Header and Footer. Root-relative so the links also work off the home page. */
+  /**
+   * Partagé par Header et Footer. Deux natures de liens cohabitent :
+   *  · « /#ancre » — section de la page d'accueil, rendue en <a> car Lenis
+   *    intercepte le clic pour le défilement fluide ;
+   *  · « /route »  — page à part entière, rendue en <Link> pour garder la
+   *    navigation côté client.
+   * `isAnchorLink` sert à trancher au rendu.
+   */
   nav: [
     { href: "/#qui-sommes-nous", label: "À propos" },
-    { href: "/#programmes", label: "Programmes" },
+    { href: "/programmes", label: "Programmes" },
     { href: "/#equipe", label: "Équipe" },
     { href: "/#infolettre", label: "Infolettre" },
   ],
 } as const;
+
+/** Ancre de la page d'accueil (défilement Lenis) plutôt que route Next. */
+export function isAnchorLink(href: string): boolean {
+  return href.startsWith("/#") || href.startsWith("#");
+}

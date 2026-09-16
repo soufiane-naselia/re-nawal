@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useLenis } from "lenis/react";
 import { Logo } from "@/components/Logo";
-import { site } from "@/content/site";
+import { isAnchorLink, site } from "@/content/site";
 
 const nav = site.nav;
 
@@ -47,28 +48,39 @@ export function Header() {
         <Logo />
 
         <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-          {nav.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              className="group relative cursor-pointer py-1 text-sm tracking-wide text-muted transition-colors duration-300 hover:text-foreground"
-            >
-              {item.label}
+          {nav.map((item) => {
+            const className =
+              "group relative cursor-pointer py-1 text-sm tracking-wide text-muted transition-colors duration-300 hover:text-foreground";
+            const underline = (
               <span
                 aria-hidden
                 className="absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-brand-pink transition-transform duration-300 ease-[var(--ease-expo)] group-hover:scale-x-100"
               />
-            </a>
-          ))}
+            );
+
+            /* Ancre : <a> pour laisser Lenis gérer le défilement.
+               Route : <Link> pour conserver la navigation côté client. */
+            return isAnchorLink(item.href) ? (
+              <a key={item.href} href={item.href} className={className}>
+                {item.label}
+                {underline}
+              </a>
+            ) : (
+              <Link key={item.href} href={item.href} className={className}>
+                {item.label}
+                {underline}
+              </Link>
+            );
+          })}
         </nav>
 
         <div className="flex items-center gap-3">
-          <a
+          <Link
             href={site.accentCta.href}
             className="hidden cursor-pointer bg-brand-pink px-4 py-2 text-xs font-semibold tracking-[0.12em] text-brand-teal uppercase transition-all duration-300 ease-[var(--ease-expo)] hover:bg-accent-dim active:scale-[0.97] sm:inline-block"
           >
             {site.accentCta.label}
-          </a>
+          </Link>
 
           <button
             type="button"
@@ -100,26 +112,44 @@ export function Header() {
           className="animate-fade-in border-t border-border bg-background md:hidden"
         >
           <nav className="flex flex-col px-4 py-6" aria-label="Mobile">
-            {nav.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={closeMenu}
-                className="flex cursor-pointer items-center justify-between border-b border-border py-4 text-lg tracking-wide text-foreground transition-colors duration-300 hover:text-brand-pink"
-              >
-                {item.label}
+            {nav.map((item) => {
+              const className =
+                "flex cursor-pointer items-center justify-between border-b border-border py-4 text-lg tracking-wide text-foreground transition-colors duration-300 hover:text-brand-pink";
+              const arrow = (
                 <span aria-hidden className="text-muted">
                   →
                 </span>
-              </a>
-            ))}
-            <a
+              );
+
+              return isAnchorLink(item.href) ? (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenu}
+                  className={className}
+                >
+                  {item.label}
+                  {arrow}
+                </a>
+              ) : (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={closeMenu}
+                  className={className}
+                >
+                  {item.label}
+                  {arrow}
+                </Link>
+              );
+            })}
+            <Link
               href={site.accentCta.href}
               onClick={closeMenu}
               className="mt-6 cursor-pointer bg-brand-pink px-4 py-3.5 text-center text-sm font-semibold tracking-[0.12em] text-brand-teal uppercase transition-transform duration-300 ease-[var(--ease-expo)] active:scale-[0.98]"
             >
               {site.accentCta.label}
-            </a>
+            </Link>
           </nav>
         </div>
       ) : null}
