@@ -154,10 +154,8 @@ export const site = {
    * `isAnchorLink` sert à trancher au rendu.
    */
   nav: [
-    { href: "/#qui-sommes-nous", label: "À propos" },
     { href: "/programmes", label: "Programmes" },
     { href: "/conferences", label: "Conférences" },
-    { href: "/#equipe", label: "Équipe" },
     { href: "/contact", label: "Contact" },
   ],
 } as const;

@@ -38,7 +38,10 @@ export default function ProgrammesPage() {
         {/* Pas de `reveal-stagger` ici : la page est courte et, sur un écran
             haut, elle ne défile pas — la view timeline resterait inactive et
             les tuiles bloquées à opacity 0. */}
-        <ul className="mt-6 grid gap-3 md:grid-cols-3">
+        {/* L'écart suit la taille de ce qu'il sépare : empilées, les tuiles
+            font ~280px de haut et 12px ne suffisaient pas à les détacher les
+            unes des autres. Plus serré une fois en colonnes. */}
+        <ul className="mt-8 grid gap-6 md:mt-6 md:grid-cols-3 md:gap-4">
           {signature.map((programme, index) => (
             <li key={programme.slug}>
               <ProgrammeTile programme={programme} index={index} />
@@ -47,11 +50,11 @@ export default function ProgrammesPage() {
         </ul>
       </section>
 
-      <section className="mt-12 sm:mt-14">
+      <section className="mt-14 sm:mt-14">
         <h2 className="text-xs font-semibold tracking-[0.25em] text-muted uppercase">
           Partenariats
         </h2>
-        <ul className="mt-6 grid gap-3 lg:grid-cols-2">
+        <ul className="mt-8 grid gap-6 md:mt-6 lg:grid-cols-2 lg:gap-4">
           {partnerships.map((programme, index) => (
             <li key={programme.slug}>
               <ProgrammeTile
