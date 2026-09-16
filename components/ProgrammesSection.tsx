@@ -16,7 +16,10 @@ export function ProgrammesSection() {
   const partnerships = site.programmes.filter((p) => p.kind === "partenariat");
 
   return (
-    <section id="programmes" className="scroll-mt-20 border-b border-border">
+    // No scroll-mt: globals.css sets scroll-padding-top and Lenis subtracts
+    // both, landing the section 160px down instead of 80px. See the note above
+    // `html` in globals.css.
+    <section id="programmes" className="border-b border-border">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <div>
           <p className="text-xs font-semibold tracking-[0.3em] text-brand-orange uppercase">

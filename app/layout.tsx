@@ -40,7 +40,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <SmoothScroll>
           <Header />
-          <main className="flex-1">{children}</main>
+          {/* The header is fixed, so main reserves its 64px. Interior pages
+              land exactly where they did when it was sticky; the Hero cancels
+              this with -mt-16 to run full-bleed under it. */}
+          <main className="flex-1 pt-16">{children}</main>
           <Footer />
         </SmoothScroll>
       </body>

@@ -31,7 +31,7 @@ export default function ProgrammesPage() {
         </h2>
         <ul className="mt-6 divide-y divide-border border-y border-border">
           {signature.map((programme, index) => (
-            <li key={programme.slug} id={programme.slug} className="scroll-mt-24 py-8">
+            <li key={programme.slug} id={programme.slug} className="py-8">
               <p className="text-xs tracking-[0.25em] text-accent uppercase">
                 {String(index + 1).padStart(2, "0")}
               </p>
@@ -52,7 +52,7 @@ export default function ProgrammesPage() {
         </h2>
         <ul className="mt-6 divide-y divide-border border-y border-border">
           {partnerships.map((programme, index) => (
-            <li key={programme.slug} id={programme.slug} className="scroll-mt-24 py-8">
+            <li key={programme.slug} id={programme.slug} className="py-8">
               <p className="text-xs tracking-[0.25em] text-accent uppercase">
                 {String(signature.length + index + 1).padStart(2, "0")}
               </p>

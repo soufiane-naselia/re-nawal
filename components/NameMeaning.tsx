@@ -41,9 +41,7 @@ export function NameMeaning() {
           {nameMeaning.paragraphs.map((paragraph) => (
             <p key={paragraph.slice(0, 48)}>{paragraph}</p>
           ))}
-          <p className="border-l-2 border-brand-yellow pl-5 text-foreground">
-            {nameMeaning.closing}
-          </p>
+          <p>{nameMeaning.closing}</p>
         </div>
       </div>
     </section>

@@ -1,5 +1,3 @@
-"use client";
-
 import { site } from "@/content/site";
 
 const HERO_VIDEO = "/vids/nawal-2025-promo.mp4";
@@ -8,7 +6,10 @@ export function Hero() {
   return (
     <section
       id="top"
-      className="relative min-h-[min(92vh,920px)] w-full overflow-hidden bg-black"
+      // -mt-16 cancels main's header offset so the footage runs edge-to-edge
+      // under the fixed header. svh (not dvh) so the hero is never clipped by
+      // mobile browser chrome and never resizes mid-scroll as the URL bar hides.
+      className="grain relative flex min-h-svh w-full flex-col overflow-hidden bg-background -mt-16"
     >
       <video
         className="absolute inset-0 h-full w-full object-cover"
@@ -16,36 +17,41 @@ export function Hero() {
         muted
         loop
         playsInline
-        preload="auto"
-        aria-label={`${site.name} promo`}
+        preload="metadata"
+        aria-hidden
       >
         <source src={HERO_VIDEO} type="video/mp4" />
       </video>
 
-      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/45 to-black/35" />
-      <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-transparent to-transparent" />
+      {/* Scrims: vertical lift for the copy, then a warm brand wash so the
+          footage reads as part of the palette instead of raw grey video. */}
+      <div className="absolute inset-0 bg-gradient-to-t from-background via-background/55 to-background/20" />
+      <div className="absolute inset-0 bg-gradient-to-r from-background via-background/40 to-transparent" />
+      <div
+        className="pointer-events-none absolute inset-0 opacity-60 mix-blend-soft-light"
+        aria-hidden
+        style={{
+          backgroundImage:
+            "radial-gradient(70% 55% at 10% 85%, #6b0a1f 0%, transparent 60%), radial-gradient(55% 45% at 88% 12%, #0f3d45 0%, transparent 65%)",
+        }}
+      />
 
-      <div className="relative z-10 mx-auto flex min-h-[min(92vh,920px)] max-w-7xl flex-col justify-end px-4 pb-16 sm:px-6 lg:px-8 lg:pb-20">
-        <h1 className="animate-fade-up font-[family-name:var(--font-bebas)] text-6xl leading-[0.92] tracking-[0.06em] text-foreground sm:text-7xl md:text-8xl">
-          {site.name}
+      {/* pt-16 keeps the copy clear of the fixed header if the viewport is too
+          short for the bottom-anchored block (landscape phones). */}
+      <div className="relative z-10 mx-auto flex w-full max-w-7xl flex-1 flex-col justify-end px-4 pt-16 pb-20 sm:px-6 lg:px-8 lg:pb-24">
+        {/* The headline is the org descriptor, not the name — the logo in the
+            header already carries the name, so repeating it here spent the
+            largest type on the least information.
+
+            Bebas is caps-only, so 100+ characters needs help to avoid reading
+            as a wall: a wider measure, and the regions split out in brand
+            pink for internal hierarchy — the same emphasis the client's own
+            promo end card uses. The drop-shadow is insurance, since the copy
+            sits over live footage and must survive a bright frame. */}
+        <h1 className="animate-fade-up delay-1 max-w-5xl font-[family-name:var(--font-bebas)] text-[clamp(1.75rem,4vw,3.5rem)] leading-[1.05] tracking-[0.02em] text-balance text-foreground drop-shadow-[0_2px_24px_rgba(7,7,7,0.55)]">
+          {site.hero.headline.lead}{" "}
+          <span className="text-brand-pink">{site.hero.headline.regions}</span>
         </h1>
-        <p className="animate-fade-up delay-1 mt-4 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-          {site.tagline}
-        </p>
-        <div className="animate-fade-up delay-2 mt-8 flex flex-wrap gap-3">
-            <a
-            href="#programmes"
-            className="bg-brand-pink px-5 py-3 text-sm font-semibold tracking-[0.12em] text-brand-teal uppercase transition-opacity hover:opacity-90"
-          >
-            Programmes
-          </a>
-          <a
-            href="#qui-sommes-nous"
-            className="border border-brand-orange/60 px-5 py-3 text-sm font-semibold tracking-[0.12em] text-foreground uppercase transition-colors hover:border-brand-orange hover:text-brand-orange"
-          >
-            À propos
-          </a>
-        </div>
       </div>
     </section>
   );

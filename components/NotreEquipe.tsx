@@ -20,7 +20,10 @@ function UserPlaceholder() {
 
 export function NotreEquipe() {
   return (
-    <section id="equipe" className="scroll-mt-20 border-b border-border bg-surface">
+    // No scroll-mt: globals.css sets scroll-padding-top and Lenis subtracts
+    // both, landing the section 160px down instead of 80px. See the note above
+    // `html` in globals.css.
+    <section id="equipe" className="border-b border-border bg-surface">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8">
         <h2 className="font-[family-name:var(--font-bebas)] text-4xl tracking-wide text-foreground sm:text-5xl">
           Notre équipe

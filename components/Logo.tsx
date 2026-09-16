@@ -3,9 +3,11 @@ import { site } from "@/content/site";
 
 export function Logo({ className = "" }: { className?: string }) {
   return (
+    // eslint-disable-next-line @next/next/no-html-link-for-pages -- same-page anchor: Lenis intercepts the click to smooth-scroll; next/link would make the router's own scroll fight it.
     <a
-      href="#top"
-      className={`group inline-flex items-center ${className}`}
+      href="/#top"
+      // min-h-11 keeps the tap target at 44px; the mark itself stays h-5.
+      className={`group inline-flex min-h-11 cursor-pointer items-center ${className}`}
       aria-label={`${site.name} — haut de page`}
     >
       <Image

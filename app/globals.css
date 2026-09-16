@@ -19,6 +19,16 @@
   --accent: #ff8aa3;
   --accent-ink: #0f3d45;
   --accent-dim: #ffb0c0;
+
+  /* Card surface that still reads as raised when it sits on --surface */
+  --surface-raised: #181818;
+
+  /* Pink is only AA-legible on teal at full strength (5.3:1). These are the
+     two dimmer steps that still clear 4.5:1 — use them instead of pink/75. */
+  --on-teal: #ffd9e1;
+  --on-teal-muted: #f2b9c6;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @theme inline {
@@ -36,18 +46,20 @@
   --color-brand-yellow: var(--brand-yellow);
   --color-brand-pink: var(--brand-pink);
   --color-brand-burgundy: var(--brand-burgundy);
+  --color-surface-raised: var(--surface-raised);
+  --color-on-teal: var(--on-teal);
+  --color-on-teal-muted: var(--on-teal-muted);
   --font-sans: var(--font-outfit);
   --font-display: var(--font-bebas);
+  --ease-expo: var(--ease-expo);
 }
 
+/* Single source of the sticky-header offset. Do NOT also add `scroll-mt-*` to
+   anchor targets: Lenis subtracts scroll-margin AND scroll-padding, so the two
+   stack and the section lands too far down. Lenis honours prefers-reduced-motion
+   on its own (respectReducedMotion defaults to true). */
 html {
   scroll-padding-top: 5rem;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
 }
 
 body {
@@ -118,4 +130,75 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
+}
+
+/* Keyboard affordance. Nothing in the UI sets outline-none, so this is the
+   single source of the focus ring — pink clears 4.5:1 on every surface here. */
+:focus-visible {
+  outline: 2px solid var(--brand-pink);
+  outline-offset: 3px;
+}
+
+/* ---------------------------------------------------------------------------
+   Scroll reveal.
+
+   Driven by `animation-timeline: view()` rather than IntersectionObserver so
+   there is no JS, no hydration cost and no flash-of-hidden-content: browsers
+   without scroll-driven animations skip the @supports block entirely and the
+   content is simply visible. Lenis drives native scroll, so the timeline
+   tracks it for free.
+   --------------------------------------------------------------------------- */
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(26px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal,
+    .reveal-stagger > * {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 20%;
+    }
+
+    /* Cascade grid/list children instead of animation-delay, which a timeline
+       ignores — offsetting the range is the scroll-driven equivalent. */
+    .reveal-stagger > *:nth-child(2) {
+      animation-range: entry 0% cover 26%;
+    }
+    .reveal-stagger > *:nth-child(3) {
+      animation-range: entry 0% cover 32%;
+    }
+    .reveal-stagger > *:nth-child(4) {
+      animation-range: entry 0% cover 38%;
+    }
+    .reveal-stagger > *:nth-child(n + 5) {
+      animation-range: entry 0% cover 44%;
+    }
+  }
+}
+
+/* Cinematic grain. Kept as a single inline SVG turbulence so it costs no
+   network request and no layout work. */
+.grain::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ken-burns {
+    animation: none;
+  }
 }

@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { site } from "@/content/site";
 
 export function ContactForm() {
   const [sent, setSent] = useState(false);
 
+  // TODO: wire to a backend. Until then this must NOT claim the message was
+  // received — nothing is sent or stored anywhere.
   function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    // Keep submission on-page — wire to backend later
     setSent(true);
   }
 
@@ -51,9 +53,21 @@ export function ContactForm() {
         Send Inquiry
       </button>
       {sent ? (
-        <p className="text-sm text-accent-dim">
-          Merci — votre message a bien été reçu.
-        </p>
+        <div className="space-y-1 border border-border bg-surface px-4 py-4 text-sm">
+          <p className="font-semibold text-foreground">
+            Ce formulaire n’est pas encore actif.
+          </p>
+          <p className="text-muted">
+            Écrivez-nous directement à{" "}
+            <a
+              href={`mailto:${site.contact.email}`}
+              className="text-accent underline underline-offset-4 hover:opacity-80"
+            >
+              {site.contact.email}
+            </a>
+            .
+          </p>
+        </div>
       ) : null}
     </form>
   );

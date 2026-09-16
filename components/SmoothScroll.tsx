@@ -9,7 +9,8 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     <ReactLenis
       root
       options={{
-        lerp: 0.1,
+        // `duration` + easing takes precedence over `lerp` in Lenis — setting
+        // both is misleading, so only the one actually used is kept.
         duration: 1.2,
         smoothWheel: true,
         anchors: true,

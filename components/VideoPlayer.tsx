@@ -47,7 +47,7 @@ export function VideoPlayer({ src, title = "N.A.W.A.L." }: Props) {
       <div className="relative aspect-video bg-black">
         <video
           ref={videoRef}
-          className="h-full w-full object-cover"
+          className="h-full w-full cursor-pointer object-cover"
           src={src}
           muted={muted}
           playsInline
@@ -60,7 +60,7 @@ export function VideoPlayer({ src, title = "N.A.W.A.L." }: Props) {
           <button
             type="button"
             onClick={togglePlay}
-            className="flex h-10 w-10 items-center justify-center border border-white/20 bg-black/70 text-foreground backdrop-blur-sm transition-colors hover:border-accent hover:text-accent"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center border border-white/20 bg-black/70 text-foreground backdrop-blur-sm transition-all duration-300 ease-[var(--ease-expo)] hover:border-accent hover:text-accent active:scale-[0.94]"
             aria-label={playing ? "Pause" : "Lecture"}
           >
             {playing ? (
@@ -76,7 +76,7 @@ export function VideoPlayer({ src, title = "N.A.W.A.L." }: Props) {
           <button
             type="button"
             onClick={toggleMute}
-            className="flex h-10 w-10 items-center justify-center border border-white/20 bg-black/70 text-foreground backdrop-blur-sm transition-colors hover:border-accent hover:text-accent"
+            className="flex h-11 w-11 cursor-pointer items-center justify-center border border-white/20 bg-black/70 text-foreground backdrop-blur-sm transition-all duration-300 ease-[var(--ease-expo)] hover:border-accent hover:text-accent active:scale-[0.94]"
             aria-label={muted ? "Activer le son" : "Couper le son"}
           >
             {muted ? (
