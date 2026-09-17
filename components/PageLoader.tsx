@@ -1,16 +1,34 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
 
 const SESSION_KEY = "nawal-visited";
 /** Same cubic as nawal2's CustomEase "hop". */
 const HOP = "cubic-bezier(0.87, 0, 0.13, 1)";
+
+/** Le chargeur reste au moins ce temps, sinon il clignote sur connexion rapide. */
+const MIN_VISIBLE_MS = 700;
+/**
+ * Plafond dur sur l'attente de la vidéo. Au-delà on ouvre quand même : un hero
+ * qui finit de se remplir en direct vaut mieux qu'un écran noir prolongé.
+ */
+const MAX_WAIT_MS = 4_000;
 const CHROME_FADE_MS = 400;
 const CURTAIN_MS = 700;
-/** Don't block forever on a bad connection — reveal anyway. */
-const VIDEO_TIMEOUT_MS = 20_000;
+
+/**
+ * idle     — rideau baissé, rien d'autre (état rendu côté serveur)
+ * loading  — logo + barre de progression
+ * fading   — le logo s'efface, le rideau tient encore
+ * lifting  — le rideau remonte
+ * done     — démonté
+ *
+ * Une seule machine à états : les quatre booléens d'avant (phase, showChrome,
+ * chromeVisible, curtainUp) décrivaient une séquence linéaire et pouvaient se
+ * désynchroniser.
+ */
+type Phase = "idle" | "loading" | "fading" | "lifting" | "done";
 
 function safeSessionGet(key: string): string | null {
   try {
@@ -28,16 +46,8 @@ function safeSessionSet(key: string, value: string) {
   }
 }
 
-/**
- * `prefers-reduced-motion` lu comme source externe plutôt que réconcilié dans
- * un effet.
- *
- * L'ancienne version appelait `setPhase("done")` en synchrone dans l'effet :
- * le rideau était monté puis démonté au rendu suivant (cascade signalée par
- * react-hooks/set-state-in-effect). `useSyncExternalStore` gère en plus le
- * snapshot serveur et s'abonne aux changements de préférence système, ce que
- * l'effet ne faisait pas.
- */
+/* `prefers-reduced-motion` lu comme source externe : pas de setState dans un
+   effet pour le réconcilier, et on suit les changements de préférence. */
 const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
 
 function subscribeReducedMotion(onChange: () => void) {
@@ -50,217 +60,172 @@ function getReducedMotion() {
   return window.matchMedia(reducedMotionQuery).matches;
 }
 
-/** Côté serveur, on suppose l'animation permise : le rendu initial correspond
- *  alors au HTML envoyé, et React réconcilie si le client dit l'inverse. */
 function getReducedMotionServer() {
   return false;
 }
 
-function wait(ms: number) {
-  return new Promise<void>((resolve) => {
-    window.setTimeout(resolve, ms);
-  });
-}
-
-/** Two frames so the browser paints the empty chrome before we animate. */
-function nextPaint(): Promise<void> {
+/**
+ * Attente annulable.
+ *
+ * Uniquement des timers — aucun `requestAnimationFrame` dans tout le fichier.
+ * rAF ne se déclenche jamais dans un onglet en arrière-plan : la version
+ * précédente attendait deux frames avant de commencer et restait donc bloquée
+ * sur un rideau noir tant que l'onglet n'avait pas le focus.
+ */
+function wait(ms: number, signal: AbortSignal): Promise<void> {
   return new Promise((resolve) => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => resolve());
-    });
+    if (signal.aborted) {
+      resolve();
+      return;
+    }
+    let id = 0;
+    const done = () => {
+      window.clearTimeout(id);
+      signal.removeEventListener("abort", done);
+      resolve();
+    };
+    id = window.setTimeout(done, ms);
+    signal.addEventListener("abort", done, { once: true });
   });
 }
 
 /**
- * Warm the HTTP cache for the hero reel and resolve once it can play through
- * (or we time out). Progress is reported from `buffered` when the browser
- * exposes it — far more honest than a fixed 1.4s timer for a ~7 MB file.
+ * Attend que le hero ait une première image décodable, en rapportant
+ * l'avancement du tampon.
+ *
+ * On écoute la vraie balise `<video data-hero>` plutôt que d'en fabriquer une
+ * copie cachée : un seul élément, un seul téléchargement, et on mesure
+ * exactement ce que le rideau masque. Sur une page sans hero (contact,
+ * programmes…), il n'y a rien à attendre et la promesse est déjà résolue.
+ *
+ * `loadeddata` (1re image) et non `canplaythrough` (les 7 Mo entiers) : le hero
+ * est une boucle de fond, elle peut démarrer et continuer à se remplir.
  */
-function preloadHeroVideo(
-  src: string,
+function waitForHeroFrame(
   onProgress: (ratio: number) => void,
-  signal: { cancelled: boolean },
+  signal: AbortSignal,
 ): Promise<void> {
+  const video = document.querySelector<HTMLVideoElement>("video[data-hero]");
+  if (!video || video.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) {
+    return Promise.resolve();
+  }
+
   return new Promise((resolve) => {
-    const video = document.createElement("video");
-    video.preload = "auto";
-    video.muted = true;
-    video.playsInline = true;
-    video.setAttribute("playsinline", "");
-    video.src = src;
-    // Some engines won't buffer off-DOM; keep it invisible but attached.
-    video.setAttribute(
-      "style",
-      "position:fixed;inset:0;width:1px;height:1px;opacity:0;pointer-events:none",
-    );
-    document.body.appendChild(video);
-
-    let settled = false;
-    let timeoutId = 0;
-    let cancelPoll = 0;
-
-    const finish = () => {
-      if (settled) return;
-      settled = true;
-      onProgress(1);
-      window.clearTimeout(timeoutId);
-      window.clearInterval(cancelPoll);
-      video.removeEventListener("progress", onBuffer);
-      video.removeEventListener("loadeddata", onBuffer);
-      video.removeEventListener("canplaythrough", finish);
-      video.remove();
+    const settle = () => {
+      video.removeEventListener("loadeddata", settle);
+      video.removeEventListener("error", settle);
+      video.removeEventListener("progress", report);
+      signal.removeEventListener("abort", settle);
       resolve();
     };
 
-    const onBuffer = () => {
-      if (signal.cancelled) {
-        finish();
-        return;
-      }
+    const report = () => {
+      // `duration`/`buffered` peuvent lever pendant que les métadonnées se posent.
       try {
         if (video.duration > 0 && video.buffered.length > 0) {
           const end = video.buffered.end(video.buffered.length - 1);
           onProgress(Math.min(end / video.duration, 0.99));
         }
       } catch {
-        /* duration/buffered can throw while metadata is still settling */
+        /* métadonnées pas encore stables */
       }
     };
 
-    timeoutId = window.setTimeout(finish, VIDEO_TIMEOUT_MS);
-    cancelPoll = window.setInterval(() => {
-      if (signal.cancelled) finish();
-    }, 200);
-
-    video.addEventListener("progress", onBuffer);
-    video.addEventListener("loadeddata", onBuffer);
-    video.addEventListener("canplaythrough", finish, { once: true });
-    video.load();
-
-    // Already warm (bfcache / prior visit within the session).
-    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
-      finish();
-    }
+    video.addEventListener("loadeddata", settle, { once: true });
+    // Vidéo injoignable (404, R2 down) : on ouvre plutôt que d'attendre le plafond.
+    video.addEventListener("error", settle, { once: true });
+    video.addEventListener("progress", report);
+    signal.addEventListener("abort", settle, { once: true });
   });
 }
 
-/**
- * First-visit / reload loader (from nawal2): progress line + %, then a black
- * curtain slides up.
- *
- * Progress tracks the hero MP4 download. The old fixed-timer approach always
- * finished before a ~7 MB reel had buffered, so the page opened onto black.
- */
+/** Rideau d'ouverture : barre de progression puis rideau noir qui remonte. */
 export function PageLoader() {
-  const [phase, setPhase] = useState<"boot" | "loading" | "exiting" | "done">(
-    "boot",
-  );
-  const [progress, setProgress] = useState(0);
-  const [chromeVisible, setChromeVisible] = useState(true);
-  const [curtainUp, setCurtainUp] = useState(false);
-  const [showChrome, setShowChrome] = useState(false);
   const reducedMotion = useSyncExternalStore(
     subscribeReducedMotion,
     getReducedMotion,
     getReducedMotionServer,
   );
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Mouvement réduit : aucune animation à jouer. On note seulement la visite
-    // pour que les prochaines pages ne relancent pas le chargeur.
+    // Mouvement réduit : rien à animer, on note juste la visite.
     if (reducedMotion) {
       safeSessionSet(SESSION_KEY, "true");
       return;
     }
 
-    const signal = { cancelled: false };
+    const controller = new AbortController();
+    const { signal } = controller;
 
-    const nav = performance.getEntriesByType(
-      "navigation",
-    )[0] as PerformanceNavigationTiming | undefined;
-    const isReload = nav?.type === "reload";
-    const isFirstVisit = !safeSessionGet(SESSION_KEY);
-    const shouldShow = isFirstVisit || isReload;
+    const navigation = performance.getEntriesByType("navigation")[0] as
+      | PerformanceNavigationTiming
+      | undefined;
+    // Le logo et la barre ne valent que pour une vraie première ouverture.
+    const withChrome =
+      navigation?.type === "reload" || !safeSessionGet(SESSION_KEY);
 
-    async function revealCurtain() {
-      setPhase("exiting");
-      await nextPaint();
-      if (signal.cancelled) return;
-      setCurtainUp(true);
-      await wait(CURTAIN_MS);
-      if (signal.cancelled) return;
+    async function run() {
+      const startedAt = performance.now();
+
+      if (withChrome) {
+        setPhase("loading");
+      }
+
+      // Course : la vidéo, ou le plafond. Rien ici ne peut attendre indéfiniment.
+      await Promise.race([
+        waitForHeroFrame(
+          (ratio) => setProgress(Math.round(ratio * 100)),
+          signal,
+        ),
+        wait(MAX_WAIT_MS, signal),
+      ]);
+      if (signal.aborted) return;
+
+      if (withChrome) {
+        setProgress(100);
+        // Beat minimum, décompté du temps déjà passé à charger.
+        await wait(
+          Math.max(MIN_VISIBLE_MS - (performance.now() - startedAt), 0),
+          signal,
+        );
+        if (signal.aborted) return;
+
+        setPhase("fading");
+        await wait(CHROME_FADE_MS, signal);
+        if (signal.aborted) return;
+      }
+
+      setPhase("lifting");
+      await wait(CURTAIN_MS, signal);
+      if (signal.aborted) return;
+
       safeSessionSet(SESSION_KEY, "true");
       setPhase("done");
     }
 
-    async function runFullLoader() {
-      setShowChrome(true);
-      setChromeVisible(true);
-      setProgress(0);
-      setCurtainUp(false);
-      setPhase("loading");
+    void run();
 
-      await nextPaint();
-      if (signal.cancelled) return;
-
-      await preloadHeroVideo(
-        HERO_VIDEO,
-        (ratio) => {
-          if (!signal.cancelled) {
-            setProgress(Math.min(Math.round(ratio * 100), 100));
-          }
-        },
-        signal,
-      );
-      if (signal.cancelled) return;
-
-      setProgress(100);
-      // Brief beat at 100% so the fill doesn't vanish the instant it completes.
-      await wait(280);
-      if (signal.cancelled) return;
-
-      setChromeVisible(false);
-      await wait(CHROME_FADE_MS);
-      if (signal.cancelled) return;
-
-      await revealCurtain();
-    }
-
-    async function runCurtainWithWarmup() {
-      // Return visit: no chrome, but still wait for the reel if it isn't cached
-      // so we don't open onto a black hero again.
-      setPhase("exiting");
-      await preloadHeroVideo(HERO_VIDEO, () => {}, signal);
-      if (signal.cancelled) return;
-      await revealCurtain();
-    }
-
-    if (!shouldShow) {
-      void runCurtainWithWarmup();
-    } else {
-      void runFullLoader();
-    }
-
-    return () => {
-      signal.cancelled = true;
-    };
+    return () => controller.abort();
   }, [reducedMotion]);
 
-  // Rien à afficher du tout en mouvement réduit : le rideau n'est jamais monté,
-  // plutôt que monté puis retiré au rendu suivant.
+  // En mouvement réduit le rideau n'est jamais monté, plutôt que monté puis retiré.
   if (reducedMotion || phase === "done") return null;
+
+  const chromeMounted = phase === "loading" || phase === "fading";
 
   return (
     <>
       <div
-        className={`nawal-curtain${curtainUp ? " nawal-curtain--up" : ""}`}
+        className={`nawal-curtain${phase === "lifting" ? " nawal-curtain--up" : ""}`}
         aria-hidden
         style={{ transitionTimingFunction: HOP }}
       />
 
-      {showChrome ? (
+      {chromeMounted ? (
         <div
-          className={`nawal-loader${chromeVisible ? "" : " nawal-loader--hide"}`}
+          className={`nawal-loader${phase === "fading" ? " nawal-loader--hide" : ""}`}
           role="status"
           aria-live="polite"
           aria-busy={phase === "loading"}

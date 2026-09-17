@@ -11,6 +11,9 @@ export function Hero() {
       className="grain relative flex min-h-svh w-full flex-col overflow-hidden bg-background -mt-16"
     >
       <video
+        // Repère pour PageLoader : il attend la 1re image de CETTE balise
+        // plutôt que d'en précharger une copie de son côté.
+        data-hero
         className="absolute inset-0 h-full w-full object-cover"
         autoPlay
         muted
