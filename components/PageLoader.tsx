@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
 
@@ -28,8 +28,32 @@ function safeSessionSet(key: string, value: string) {
   }
 }
 
-function prefersReducedMotion(): boolean {
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/**
+ * `prefers-reduced-motion` lu comme source externe plutôt que réconcilié dans
+ * un effet.
+ *
+ * L'ancienne version appelait `setPhase("done")` en synchrone dans l'effet :
+ * le rideau était monté puis démonté au rendu suivant (cascade signalée par
+ * react-hooks/set-state-in-effect). `useSyncExternalStore` gère en plus le
+ * snapshot serveur et s'abonne aux changements de préférence système, ce que
+ * l'effet ne faisait pas.
+ */
+const reducedMotionQuery = "(prefers-reduced-motion: reduce)";
+
+function subscribeReducedMotion(onChange: () => void) {
+  const media = window.matchMedia(reducedMotionQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
+function getReducedMotion() {
+  return window.matchMedia(reducedMotionQuery).matches;
+}
+
+/** Côté serveur, on suppose l'animation permise : le rendu initial correspond
+ *  alors au HTML envoyé, et React réconcilie si le client dit l'inverse. */
+function getReducedMotionServer() {
+  return false;
 }
 
 function wait(ms: number) {
@@ -135,8 +159,20 @@ export function PageLoader() {
   const [chromeVisible, setChromeVisible] = useState(true);
   const [curtainUp, setCurtainUp] = useState(false);
   const [showChrome, setShowChrome] = useState(false);
+  const reducedMotion = useSyncExternalStore(
+    subscribeReducedMotion,
+    getReducedMotion,
+    getReducedMotionServer,
+  );
 
   useEffect(() => {
+    // Mouvement réduit : aucune animation à jouer. On note seulement la visite
+    // pour que les prochaines pages ne relancent pas le chargeur.
+    if (reducedMotion) {
+      safeSessionSet(SESSION_KEY, "true");
+      return;
+    }
+
     const signal = { cancelled: false };
 
     const nav = performance.getEntriesByType(
@@ -199,13 +235,6 @@ export function PageLoader() {
       await revealCurtain();
     }
 
-    if (prefersReducedMotion()) {
-      safeSessionSet(SESSION_KEY, "true");
-      setCurtainUp(true);
-      setPhase("done");
-      return;
-    }
-
     if (!shouldShow) {
       void runCurtainWithWarmup();
     } else {
@@ -215,9 +244,11 @@ export function PageLoader() {
     return () => {
       signal.cancelled = true;
     };
-  }, []);
+  }, [reducedMotion]);
 
-  if (phase === "done") return null;
+  // Rien à afficher du tout en mouvement réduit : le rideau n'est jamais monté,
+  // plutôt que monté puis retiré au rendu suivant.
+  if (reducedMotion || phase === "done") return null;
 
   return (
     <>

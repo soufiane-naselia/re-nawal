@@ -5,7 +5,8 @@ import { site } from "@/content/site";
 
 export const metadata: Metadata = {
   title: "Contact",
-  description: `Get in touch with ${site.name}.`,
+  /* Pas de point final : `site.name` se termine déjà par un point. */
+  description: `Écrivez à ${site.name}`,
 };
 
 export default function ContactPage() {
@@ -16,10 +17,11 @@ export default function ContactPage() {
           Contact
         </p>
         <h1 className="mt-3 font-[family-name:var(--font-bebas)] text-5xl tracking-wide sm:text-6xl">
-          Let&apos;s talk
+          Parlons-en
         </h1>
         <p className="mt-4 max-w-md text-muted">
-          Development, co-production, press, or festival inquiries. We read every message.
+          Développement, coproduction, presse ou festivals. Nous lisons chaque
+          message.
         </p>
 
         <div className="mt-10 space-y-8">
