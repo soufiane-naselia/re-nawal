@@ -297,16 +297,12 @@ body {
 }
 
 .nawal-loader__bar {
-  width: 0%;
+  width: 100%;
   height: 100%;
   background: #fff;
+  transform: scaleX(0);
   transform-origin: left center;
-  transition: width 1.2s cubic-bezier(0.45, 0, 0.55, 1);
-  will-change: width;
-}
-
-.nawal-loader__bar--full {
-  width: 100%;
+  will-change: transform;
 }
 
 .nawal-loader__count {

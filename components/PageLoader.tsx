@@ -1,14 +1,13 @@
 "use client";
 
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { site } from "@/content/site";
 
 const SESSION_KEY = "nawal-visited";
 /** Same cubic as nawal2's CustomEase "hop". */
 const HOP = "cubic-bezier(0.87, 0, 0.13, 1)";
-const COUNT_MS = 1200;
-const MIN_HOLD_MS = 400;
+const COUNT_MS = 1400;
+const MIN_HOLD_MS = 300;
 const CHROME_FADE_MS = 400;
 const CURTAIN_MS = 700;
 
@@ -38,21 +37,30 @@ function wait(ms: number) {
   });
 }
 
+/** Two frames so the browser paints the empty chrome before we animate. */
+function nextPaint(): Promise<void> {
+  return new Promise((resolve) => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => resolve());
+    });
+  });
+}
+
 /**
- * First-visit / reload loader stolen from nawal2: progress line, percentage
- * counter, then a black curtain that slides up to reveal the page.
+ * First-visit / reload loader (from nawal2): progress line + %, then a black
+ * curtain slides up.
  *
- * Skipped on soft navigations within the same session (layout stays mounted).
- * `sessionStorage` is written only when the sequence finishes, so React Strict
- * Mode's double-invoke in dev can restart cleanly without getting stuck at 0%.
+ * Progress is driven by rAF → inline `scaleX`, not a CSS width class toggle.
+ * The class-based transition often never fires in production: React commits
+ * `showChrome` and `--full` in one paint, so the bar mounts already at 100%
+ * (or stays at 0%) and you only see the empty track.
  */
 export function PageLoader() {
   const [phase, setPhase] = useState<"boot" | "loading" | "exiting" | "done">(
     "boot",
   );
-  const [count, setCount] = useState(0);
+  const [progress, setProgress] = useState(0);
   const [chromeVisible, setChromeVisible] = useState(true);
-  const [barFull, setBarFull] = useState(false);
   const [curtainUp, setCurtainUp] = useState(false);
   const [showChrome, setShowChrome] = useState(false);
 
@@ -69,9 +77,7 @@ export function PageLoader() {
 
     async function revealCurtainOnly() {
       setPhase("exiting");
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => resolve());
-      });
+      await nextPaint();
       if (cancelled) return;
       setCurtainUp(true);
       await wait(CURTAIN_MS);
@@ -83,18 +89,11 @@ export function PageLoader() {
     async function runFullLoader() {
       setShowChrome(true);
       setChromeVisible(true);
-      setCount(0);
-      setBarFull(false);
+      setProgress(0);
       setCurtainUp(false);
       setPhase("loading");
 
-      // Restart the CSS width transition after a Strict Mode remount.
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          setBarFull(true);
-          resolve();
-        });
-      });
+      await nextPaint();
       if (cancelled) return;
 
       const countStart = performance.now();
@@ -105,7 +104,9 @@ export function PageLoader() {
             return;
           }
           const t = Math.min((now - countStart) / COUNT_MS, 1);
-          setCount(Math.min(Math.floor(t * 100), 100));
+          // Ease matches the old CSS curve so the fill doesn't feel linear.
+          const eased = t * t * (3 - 2 * t);
+          setProgress(Math.min(Math.round(eased * 100), 100));
           if (t < 1) raf = requestAnimationFrame(tick);
           else resolve();
         };
@@ -174,27 +175,31 @@ export function PageLoader() {
           aria-busy={phase === "loading"}
         >
           <div className="nawal-loader__top">
-            <Image
+            {/* Plain img: next/image can flash a blank box in prod while the
+                optimized asset resolves, which read as a “white border”. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/img/nawal.png"
               alt={site.name}
               width={200}
               height={50}
-              priority
               className="nawal-loader__logo"
+              decoding="async"
             />
           </div>
 
           <div className="nawal-loader__line">
             <div className="nawal-loader__track">
               <div
-                className={`nawal-loader__bar${barFull ? " nawal-loader__bar--full" : ""}`}
+                className="nawal-loader__bar"
+                style={{ transform: `scaleX(${progress / 100})` }}
               />
             </div>
           </div>
 
           <div className="nawal-loader__bottom">
             <div className="nawal-loader__count">
-              <span>{count}</span>
+              <span>{progress}</span>
               <span>%</span>
             </div>
             <span className="nawal-loader__caption">Chargement</span>
