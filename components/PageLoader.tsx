@@ -1,15 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
 
 const SESSION_KEY = "nawal-visited";
 /** Same cubic as nawal2's CustomEase "hop". */
 const HOP = "cubic-bezier(0.87, 0, 0.13, 1)";
-const COUNT_MS = 1400;
-const MIN_HOLD_MS = 300;
 const CHROME_FADE_MS = 400;
 const CURTAIN_MS = 700;
+/** Don't block forever on a bad connection — reveal anyway. */
+const VIDEO_TIMEOUT_MS = 20_000;
 
 function safeSessionGet(key: string): string | null {
   try {
@@ -47,13 +48,84 @@ function nextPaint(): Promise<void> {
 }
 
 /**
+ * Warm the HTTP cache for the hero reel and resolve once it can play through
+ * (or we time out). Progress is reported from `buffered` when the browser
+ * exposes it — far more honest than a fixed 1.4s timer for a ~7 MB file.
+ */
+function preloadHeroVideo(
+  src: string,
+  onProgress: (ratio: number) => void,
+  signal: { cancelled: boolean },
+): Promise<void> {
+  return new Promise((resolve) => {
+    const video = document.createElement("video");
+    video.preload = "auto";
+    video.muted = true;
+    video.playsInline = true;
+    video.setAttribute("playsinline", "");
+    video.src = src;
+    // Some engines won't buffer off-DOM; keep it invisible but attached.
+    video.setAttribute(
+      "style",
+      "position:fixed;inset:0;width:1px;height:1px;opacity:0;pointer-events:none",
+    );
+    document.body.appendChild(video);
+
+    let settled = false;
+    let timeoutId = 0;
+    let cancelPoll = 0;
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      onProgress(1);
+      window.clearTimeout(timeoutId);
+      window.clearInterval(cancelPoll);
+      video.removeEventListener("progress", onBuffer);
+      video.removeEventListener("loadeddata", onBuffer);
+      video.removeEventListener("canplaythrough", finish);
+      video.remove();
+      resolve();
+    };
+
+    const onBuffer = () => {
+      if (signal.cancelled) {
+        finish();
+        return;
+      }
+      try {
+        if (video.duration > 0 && video.buffered.length > 0) {
+          const end = video.buffered.end(video.buffered.length - 1);
+          onProgress(Math.min(end / video.duration, 0.99));
+        }
+      } catch {
+        /* duration/buffered can throw while metadata is still settling */
+      }
+    };
+
+    timeoutId = window.setTimeout(finish, VIDEO_TIMEOUT_MS);
+    cancelPoll = window.setInterval(() => {
+      if (signal.cancelled) finish();
+    }, 200);
+
+    video.addEventListener("progress", onBuffer);
+    video.addEventListener("loadeddata", onBuffer);
+    video.addEventListener("canplaythrough", finish, { once: true });
+    video.load();
+
+    // Already warm (bfcache / prior visit within the session).
+    if (video.readyState >= HTMLMediaElement.HAVE_ENOUGH_DATA) {
+      finish();
+    }
+  });
+}
+
+/**
  * First-visit / reload loader (from nawal2): progress line + %, then a black
  * curtain slides up.
  *
- * Progress is driven by rAF → inline `scaleX`, not a CSS width class toggle.
- * The class-based transition often never fires in production: React commits
- * `showChrome` and `--full` in one paint, so the bar mounts already at 100%
- * (or stays at 0%) and you only see the empty track.
+ * Progress tracks the hero MP4 download. The old fixed-timer approach always
+ * finished before a ~7 MB reel had buffered, so the page opened onto black.
  */
 export function PageLoader() {
   const [phase, setPhase] = useState<"boot" | "loading" | "exiting" | "done">(
@@ -65,8 +137,7 @@ export function PageLoader() {
   const [showChrome, setShowChrome] = useState(false);
 
   useEffect(() => {
-    let cancelled = false;
-    let raf = 0;
+    const signal = { cancelled: false };
 
     const nav = performance.getEntriesByType(
       "navigation",
@@ -75,13 +146,13 @@ export function PageLoader() {
     const isFirstVisit = !safeSessionGet(SESSION_KEY);
     const shouldShow = isFirstVisit || isReload;
 
-    async function revealCurtainOnly() {
+    async function revealCurtain() {
       setPhase("exiting");
       await nextPaint();
-      if (cancelled) return;
+      if (signal.cancelled) return;
       setCurtainUp(true);
       await wait(CURTAIN_MS);
-      if (cancelled) return;
+      if (signal.cancelled) return;
       safeSessionSet(SESSION_KEY, "true");
       setPhase("done");
     }
@@ -94,48 +165,38 @@ export function PageLoader() {
       setPhase("loading");
 
       await nextPaint();
-      if (cancelled) return;
+      if (signal.cancelled) return;
 
-      const countStart = performance.now();
-      await new Promise<void>((resolve) => {
-        const tick = (now: number) => {
-          if (cancelled) {
-            resolve();
-            return;
+      await preloadHeroVideo(
+        HERO_VIDEO,
+        (ratio) => {
+          if (!signal.cancelled) {
+            setProgress(Math.min(Math.round(ratio * 100), 100));
           }
-          const t = Math.min((now - countStart) / COUNT_MS, 1);
-          // Ease matches the old CSS curve so the fill doesn't feel linear.
-          const eased = t * t * (3 - 2 * t);
-          setProgress(Math.min(Math.round(eased * 100), 100));
-          if (t < 1) raf = requestAnimationFrame(tick);
-          else resolve();
-        };
-        raf = requestAnimationFrame(tick);
-      });
-      if (cancelled) return;
+        },
+        signal,
+      );
+      if (signal.cancelled) return;
 
-      const waitImages = new Promise<void>((resolve) => {
-        if (document.readyState === "complete") {
-          resolve();
-          return;
-        }
-        window.addEventListener("load", () => resolve(), { once: true });
-      });
-
-      await Promise.all([waitImages, wait(MIN_HOLD_MS)]);
-      if (cancelled) return;
+      setProgress(100);
+      // Brief beat at 100% so the fill doesn't vanish the instant it completes.
+      await wait(280);
+      if (signal.cancelled) return;
 
       setChromeVisible(false);
-      setPhase("exiting");
       await wait(CHROME_FADE_MS);
-      if (cancelled) return;
+      if (signal.cancelled) return;
 
-      setCurtainUp(true);
-      await wait(CURTAIN_MS);
-      if (cancelled) return;
+      await revealCurtain();
+    }
 
-      safeSessionSet(SESSION_KEY, "true");
-      setPhase("done");
+    async function runCurtainWithWarmup() {
+      // Return visit: no chrome, but still wait for the reel if it isn't cached
+      // so we don't open onto a black hero again.
+      setPhase("exiting");
+      await preloadHeroVideo(HERO_VIDEO, () => {}, signal);
+      if (signal.cancelled) return;
+      await revealCurtain();
     }
 
     if (prefersReducedMotion()) {
@@ -146,14 +207,13 @@ export function PageLoader() {
     }
 
     if (!shouldShow) {
-      void revealCurtainOnly();
+      void runCurtainWithWarmup();
     } else {
       void runFullLoader();
     }
 
     return () => {
-      cancelled = true;
-      cancelAnimationFrame(raf);
+      signal.cancelled = true;
     };
   }, []);
 

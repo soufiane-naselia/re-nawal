@@ -1,6 +1,5 @@
+import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
-
-const HERO_VIDEO = "/vids/nawal-2025-promo.mp4";
 
 export function Hero() {
   return (
@@ -17,7 +16,9 @@ export function Hero() {
         muted
         loop
         playsInline
-        preload="metadata"
+        // `auto`: the PageLoader already warmed this URL into the HTTP cache,
+        // so this should hit disk/memory instead of starting cold at reveal.
+        preload="auto"
         aria-hidden
       >
         <source src={HERO_VIDEO} type="video/mp4" />

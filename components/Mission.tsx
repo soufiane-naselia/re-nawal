@@ -2,9 +2,8 @@ import { NameMeaning } from "@/components/NameMeaning";
 import { NotreEquipe } from "@/components/NotreEquipe";
 import { NotreMission } from "@/components/NotreMission";
 import { VideoPlayer } from "@/components/VideoPlayer";
+import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
-
-const ABOUT_VIDEO = "/vids/nawal-2025-promo.mp4";
 
 /** Identity blocks under the hero. */
 export function Mission() {
@@ -30,7 +29,7 @@ export function Mission() {
             </div>
           </div>
 
-          <VideoPlayer src={ABOUT_VIDEO} title="N.A.W.A.L. · Promo 2025" />
+          <VideoPlayer src={HERO_VIDEO} title="N.A.W.A.L. · Promo 2025" />
         </div>
       </section>
 

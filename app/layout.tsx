@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Outfit } from "next/font/google";
+import { preload } from "react-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { PageLoader } from "@/components/PageLoader";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { HERO_VIDEO } from "@/content/media";
 import { site } from "@/content/site";
 import "./globals.css";
 
@@ -33,6 +35,10 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
+  // Same URL the PageLoader and <Hero> use — warm the cache as early as the
+  // document head so the first visit only pays for the ~7 MB reel once.
+  preload(HERO_VIDEO, { as: "video", type: "video/mp4" });
+
   return (
     <html
       lang="fr"
