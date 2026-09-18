@@ -1,5 +1,4 @@
 import { NameMeaning } from "@/components/NameMeaning";
-import { NotreEquipe } from "@/components/NotreEquipe";
 import { NotreMission } from "@/components/NotreMission";
 import { VideoPlayer } from "@/components/VideoPlayer";
 import { HERO_VIDEO } from "@/content/media";
@@ -37,9 +36,8 @@ export function Mission() {
 
       <NotreMission />
 
-      {/* Les programmes vivent désormais sur /programmes, pas en section
-          d'accueil : la navigation y renvoie directement. */}
-      <NotreEquipe />
+      {/* Programmes et équipe ont leurs propres pages (/programmes, /equipe) :
+          la navigation y renvoie directement. */}
     </>
   );
 }

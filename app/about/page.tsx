@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { NotreEquipe } from "@/components/NotreEquipe";
 import { site } from "@/content/site";
 
 export const metadata: Metadata = {
@@ -29,8 +28,6 @@ export default function AboutPage() {
           ))}
         </div>
       </div>
-
-      <NotreEquipe />
     </>
   );
 }

@@ -156,6 +156,7 @@ export const site = {
   nav: [
     { href: "/programmes", label: "Programmes" },
     { href: "/conferences", label: "Conférences" },
+    { href: "/equipe", label: "Équipe" },
     { href: "/contact", label: "Contact" },
   ],
 } as const;
